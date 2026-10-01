@@ -1,11 +1,14 @@
-name: Create Production Builds
+name: Build Android APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
 
 jobs:
   build_android:
-    type: build # This job type creates a production build for Android
+    name: Build Android APK
+    type: build
     params:
       platform: android
-  build_ios:
-    type: build # This job type creates a production build for iOS
-    params:
-      platform: ios
+      profile: preview
