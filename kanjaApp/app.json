@@ -1,0 +1,54 @@
+{
+  "expo": {
+    "name": "Kanja App",
+    "slug": "kanja-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon1.png",
+    "scheme": "kanjaapp",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "icon": "./assets/images/icon1.png",
+      "bundleIdentifier": "com.kelvinmutinda.kanjaapp",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "monochromeImage": "./assets/images/monochrome-icon.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.kelvinmutinda.kanjaapp",
+      "permissions": []
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#208AEF",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 76
+        }
+      ],
+      "expo-secure-store"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "29d7d9a5-d15d-4ed9-aa34-e0c5cab4ca1b"
+      }
+    }
+  }
+}
