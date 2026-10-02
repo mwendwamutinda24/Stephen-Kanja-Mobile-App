@@ -7,16 +7,20 @@
     "icon": "./assets/images/icon1.png",
     "scheme": "kanjaapp",
     "userInterfaceStyle": "automatic",
+    "updates": {
+      "url": "https://u.expo.dev/29d7d9a5-d15d-4ed9-aa34-e0c5cab4ca1b",
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "ios": {
       "icon": "./assets/images/icon1.png",
       "bundleIdentifier": "com.kelvinmutinda.kanjaapp",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      },
-      "updates": {
-  "checkAutomatically": "ON_LOAD",
-  "fallbackToCacheTimeout": 0
-},
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -52,7 +56,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "4466d452-b06a-4233-a17d-60b59582848a"
+        "projectId": "29d7d9a5-d15d-4ed9-aa34-e0c5cab4ca1b"
       }
     }
   }
