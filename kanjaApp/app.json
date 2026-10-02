@@ -12,7 +12,11 @@
       "bundleIdentifier": "com.kelvinmutinda.kanjaapp",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "updates": {
+  "checkAutomatically": "ON_LOAD",
+  "fallbackToCacheTimeout": 0
+},
     },
     "android": {
       "adaptiveIcon": {
