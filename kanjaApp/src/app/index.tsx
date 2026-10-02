@@ -3,30 +3,33 @@ import { router } from 'expo-router';
 
 import { type Role, useAuth } from '@/context/AuthContext';
 
-// Where each role lands after a successful redirect.
-// Mirrors the Student → Teachers fallthrough your web login already does —
-// the difference is the role comes back from /api/login.php or /api/me.php
-// instead of being tried table-by-table here on the client.
+// Every role lands on the HOI dashboard for now.
+// Teachers use the same (hoi) group since we don't have a separate (teacher) folder yet.
 const ROLE_ROUTES: Record<Role, string> = {
   hoi: '/(hoi)/dashboard',
-  teacher: '/(teacher)/dashboard',
-  student: '/(student)/dashboard',
+  teacher: '/(hoi)/teachers',
+  student: '/(students)/studentsDashboard',
 };
 
 export default function IndexScreen() {
   const { isLoading, token, role } = useAuth();
 
   useEffect(() => {
-    if (isLoading) return; // still checking SecureStore for a saved token
+    if (isLoading) return;
 
     if (!token || !role) {
       router.replace('/(auth)/login');
       return;
     }
 
-    router.replace(ROLE_ROUTES[role] as any);
+    const target = ROLE_ROUTES[role];
+    if (!target) {
+      router.replace('/(auth)/login');
+      return;
+    }
+
+    router.replace(target as any);
   }, [isLoading, token, role]);
 
-  // Nothing to render — this screen is just a redirect gate.
   return null;
 }
