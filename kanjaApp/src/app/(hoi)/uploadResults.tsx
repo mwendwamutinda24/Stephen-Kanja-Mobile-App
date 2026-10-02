@@ -533,17 +533,18 @@ export default function UploadResults() {
       <View style={styles.header}>
         <View style={styles.headerRow}>
           <TouchableOpacity style={styles.menuButton} onPress={() => setSidebarOpen(true)}>
-            <Menu size={20} color="#FFFFFF" />
+            <Menu size={20} color="#2B3645" />
           </TouchableOpacity>
           <View style={styles.logoBadge}>
-            <GraduationCap size={20} color="#111111" />
+            <GraduationCap size={20} color="#FFFFFF" />
           </View>
-          <View>
+          <View style={{ flex: 1 }}>
             <ThemedText style={styles.header1}>
-              STEPHEN KANJA <ThemedText style={styles.headerAccent}>SCHOOL</ThemedText>
+              Stephen Kanja <ThemedText style={styles.headerAccent}>School</ThemedText>
             </ThemedText>
             <ThemedText style={styles.header2}>Aim Higher</ThemedText>
           </View>
+          <View style={styles.headerDot} />
         </View>
       </View>
 
@@ -971,39 +972,46 @@ const COLORS = {
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: COLORS.pageBg },
 
-  // Header (black, gold accent — matches the web app)
+  // Header (light card style, matching the dashboard header)
   header: {
-    backgroundColor: '#000000',
+    backgroundColor: COLORS.pageBg,
     paddingTop: 50,
     paddingBottom: 14,
     paddingHorizontal: 16,
-    borderBottomWidth: 3,
-    borderBottomColor: COLORS.gold,
   },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   menuButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    backgroundColor: '#1C1C1C',
-    borderWidth: 1,
-    borderColor: '#333333',
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
   },
   logoBadge: {
     width: 36,
     height: 36,
     borderRadius: 8,
-    backgroundColor: COLORS.gold,
+    backgroundColor: COLORS.green,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 4,
   },
-  header1: { color: '#FFFFFF', fontSize: 15, fontWeight: '800', letterSpacing: 0.5 },
-  headerAccent: { color: COLORS.gold },
-  header2: { color: '#D8C48A', fontSize: 11, fontStyle: 'italic', marginTop: 2 },
+  header1: { color: '#1B2431', fontSize: 16, fontWeight: '800', letterSpacing: 0.2 },
+  headerAccent: { color: COLORS.green },
+  header2: { color: COLORS.textMuted, fontSize: 11, fontStyle: 'italic', marginTop: 2 },
+  headerDot: {
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    backgroundColor: '#6C5CE7',
+  },
 
   // Toast
   toast: {
