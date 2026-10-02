@@ -106,7 +106,7 @@ const ADMIN_ITEMS: SidebarItem[] = [
 
 const ACADEMIC_ITEMS: SidebarItem[] = [
   { icon: PieChart, label: 'Results', route: '/uploadResults' },
-  { icon: Grid3x3, label: 'Timetable', route: '/timetable' },
+
 ];
 
 function AppSidebar({
