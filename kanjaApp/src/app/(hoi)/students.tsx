@@ -22,12 +22,15 @@ import {
   GraduationCap,
   Home,
   Users,
-  LineChart,
+  TrendingUp,
   UserPlus,
   PieChart,
-  Upload,
+  FileUp,
   Target,
-  Layers,
+  BookOpen,
+  ClipboardCheck,
+  Bell,
+  Coins,
   Filter,
   Search,
   AlertCircle,
@@ -48,40 +51,53 @@ const DRAWER_W = 280;
 
 const GRADES = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
+// ---------- Sidebar palette (slight navy + gold) ----------
+const SIDEBAR_BG = '#14294D';
+const SIDEBAR_ACCENT = '#F0C040';
+const SIDEBAR_ACCENT_TINT = 'rgba(240, 192, 64, 0.12)';
+const SIDEBAR_BORDER = 'rgba(255,255,255,0.10)';
+const SIDEBAR_TEXT = '#C9D3E3';
+const SIDEBAR_TEXT_MUTED = '#8696B5';
+
+const CURRENT_ROUTE = '/students';
+
 type NavItem = {
   label: string;
-  icon: React.ComponentType<{ size?: number; color?: string }>;
+  icon: React.ComponentType<{ size?: number; color?: string; style?: any }>;
   route: string;
 };
-type NavSection = { title: string | null; items: NavItem[] };
+type NavSection = { title: string; items: NavItem[] };
 
+// Same sections, icons and routes as the Teachers panel
 const NAV_SECTIONS: NavSection[] = [
   {
-    title: null,
+    title: 'MAIN',
     items: [
-      { label: 'Home', icon: Home, route: '/' },
+      { label: 'Home', icon: Home, route: '/teachers' },
       { label: 'Students', icon: Users, route: '/students' },
-      { label: 'Progress Records', icon: LineChart, route: '/progress' },
-    ],
-  },
-  {
-    title: 'ADMINISTRATION',
-    items: [
-      { label: 'Register Learners', icon: UserPlus, route: '/registerLearner' },
-      { label: 'Register Teachers', icon: UserPlus, route: '/registerTeacher' },
+      { label: 'Progress Records', icon: TrendingUp, route: '/progress' },
     ],
   },
   {
     title: 'ACADEMICS',
     items: [
       { label: 'Results', icon: PieChart, route: '/results' },
-      { label: 'Upload Results', icon: Upload, route: '/uploadResults' },
+      { label: 'Upload Results', icon: FileUp, route: '/uploadResults' },
       { label: 'Track Performance', icon: Target, route: '/track' },
+      { label: 'Learning Materials', icon: BookOpen, route: '/learningMaterials' },
+    ],
+  },
+  {
+    title: 'ADMINISTRATION',
+    items: [
+      { label: 'Register Learners', icon: UserPlus, route: '/registerLearner' },
+      { label: 'Attendance', icon: ClipboardCheck, route: '/attendance' },
+      { label: 'Notices', icon: Bell, route: '/notices' },
     ],
   },
   {
     title: 'FINANCE',
-    items: [{ label: 'Finances', icon: Layers, route: '/trackFees' }],
+    items: [{ label: 'Finances', icon: Coins, route: '/trackFees' }],
   },
 ];
 
@@ -247,6 +263,9 @@ async function exportLearnersPdf(grade: string, list: Learner[]): Promise<void> 
 
 /* ────────────────────────────────────────────────────────────
    Sidebar (permanent on wide screens, slide-in drawer otherwise)
+   Navy + gold, matching the rest of the portal. Routing works like
+   the Teachers panel: router.push(route). The current screen just
+   closes the drawer.
    ──────────────────────────────────────────────────────────── */
 function SidebarNav({
   activeRoute,
@@ -256,20 +275,28 @@ function SidebarNav({
   onNavigate: (route: string) => void;
 }) {
   return (
-    <ScrollView contentContainerStyle={styles.navScroll} showsVerticalScrollIndicator={false}>
-      {NAV_SECTIONS.map((section, si) => (
-        <View key={section.title ?? `s${si}`} style={styles.navSection}>
-          {section.title && <ThemedText style={styles.sectionLabel}>{section.title}</ThemedText>}
+    <ScrollView
+      style={{ flex: 1 }}
+      contentContainerStyle={styles.navScroll}
+      showsVerticalScrollIndicator={false}
+    >
+      {NAV_SECTIONS.map((section) => (
+        <View key={section.title} style={styles.navSection}>
+          <ThemedText style={styles.sectionLabel}>{section.title}</ThemedText>
           {section.items.map((item) => {
             const active = item.route === activeRoute;
             const Icon = item.icon;
             return (
               <TouchableOpacity
-                key={item.route}
+                key={item.label}
                 style={[styles.navItem, active && styles.navItemActive]}
                 onPress={() => onNavigate(item.route)}
               >
-                <Icon size={18} color={active ? COLORS.gold : '#E5E5E5'} />
+                <Icon
+                  size={18}
+                  color={active ? SIDEBAR_ACCENT : SIDEBAR_TEXT_MUTED}
+                  style={{ marginRight: 12 }}
+                />
                 <ThemedText style={[styles.navItemText, active && styles.navItemTextActive]}>
                   {item.label}
                 </ThemedText>
@@ -286,12 +313,13 @@ function Drawer({
   visible,
   onClose,
   activeRoute,
+  onNavigate,
 }: {
   visible: boolean;
   onClose: () => void;
   activeRoute: string;
+  onNavigate: (route: string) => void;
 }) {
-  const router = useRouter();
   const translateX = React.useRef(new Animated.Value(-DRAWER_W)).current;
 
   useEffect(() => {
@@ -308,18 +336,25 @@ function Drawer({
         <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onClose} />
         <Animated.View style={[styles.drawer, { width: DRAWER_W, transform: [{ translateX }] }]}>
           <View style={styles.drawerHeader}>
-            <ThemedText style={styles.drawerTitle}>Menu</ThemedText>
             <TouchableOpacity style={styles.drawerClose} onPress={onClose}>
-              <X size={18} color="#FFFFFF" />
+              <X size={18} color={SIDEBAR_TEXT} />
             </TouchableOpacity>
+            <View style={styles.drawerBadge}>
+              <GraduationCap size={16} color="#111111" />
+            </View>
+            <View style={{ marginLeft: 10 }}>
+              <ThemedText style={styles.drawerBrand}>
+                STEPHEN KANJA <ThemedText style={{ color: SIDEBAR_ACCENT }}>SCHOOL</ThemedText>
+              </ThemedText>
+              <ThemedText style={styles.drawerTagline}>AIM HIGHER</ThemedText>
+            </View>
           </View>
-          <SidebarNav
-            activeRoute={activeRoute}
-            onNavigate={(route) => {
-              onClose();
-              router.push(route as any);
-            }}
-          />
+
+          <SidebarNav activeRoute={activeRoute} onNavigate={onNavigate} />
+
+          <ThemedText style={styles.sidebarFooter}>
+            © 2026 Kelvin Mutinda{'\n'}infinityfreeapp.com
+          </ThemedText>
         </Animated.View>
       </View>
     </Modal>
@@ -381,6 +416,13 @@ export default function StudentsPage() {
     const t = setTimeout(() => setToast(null), 6000);
     return () => clearTimeout(t);
   }, [toast]);
+
+  /* Navigation — same behaviour as the Teachers panel */
+  const navigateTo = (route?: string) => {
+    setDrawerOpen(false);
+    // Already on the Students screen: just close the drawer.
+    if (route && route !== CURRENT_ROUTE) router.push(route as any);
+  };
 
   const filtered = learners.filter((l) => {
     const q = search.trim().toLowerCase();
@@ -558,7 +600,10 @@ export default function StudentsPage() {
       <View style={styles.shell}>
         {isWide && (
           <View style={styles.sideFixed}>
-            <SidebarNav activeRoute="/students" onNavigate={(r) => router.push(r as any)} />
+            <SidebarNav activeRoute={CURRENT_ROUTE} onNavigate={navigateTo} />
+            <ThemedText style={styles.sidebarFooter}>
+              © 2026 Kelvin Mutinda{'\n'}infinityfreeapp.com
+            </ThemedText>
           </View>
         )}
 
@@ -746,7 +791,12 @@ export default function StudentsPage() {
       </View>
 
       {!isWide && (
-        <Drawer visible={drawerOpen} onClose={() => setDrawerOpen(false)} activeRoute="/students" />
+        <Drawer
+          visible={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          activeRoute={CURRENT_ROUTE}
+          onNavigate={navigateTo}
+        />
       )}
 
       {/* Edit learner modal */}
@@ -933,57 +983,94 @@ const styles = StyleSheet.create({
 
   // Shell
   shell: { flex: 1, flexDirection: 'row' },
-  sideFixed: { width: SIDEBAR_W, backgroundColor: '#000000', paddingTop: 8 },
+  sideFixed: {
+    width: SIDEBAR_W,
+    backgroundColor: SIDEBAR_BG,
+    paddingTop: 8,
+    borderRightWidth: 1,
+    borderRightColor: SIDEBAR_BORDER,
+  },
   body: { flex: 1 },
   bodyContent: { padding: 24, paddingBottom: 60 },
 
-  // Sidebar nav
-  navScroll: { paddingHorizontal: 12, paddingBottom: 30 },
+  // Sidebar nav (navy + gold)
+  navScroll: { paddingHorizontal: 12, paddingBottom: 12 },
   navSection: { marginTop: 4 },
   sectionLabel: {
-    color: '#8B8B8B',
-    fontSize: 10.5,
-    fontWeight: '700',
-    letterSpacing: 1.5,
+    color: SIDEBAR_TEXT_MUTED,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.8,
     marginTop: 18,
     marginBottom: 8,
-    marginLeft: 12,
+    paddingHorizontal: 14,
   },
   navItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 11,
     borderRadius: 10,
-    marginBottom: 2,
     borderLeftWidth: 3,
     borderLeftColor: 'transparent',
+    marginBottom: 2,
   },
-  navItemActive: { backgroundColor: '#1A1A1A', borderLeftColor: COLORS.gold },
-  navItemText: { color: '#E5E5E5', fontSize: 14.5 },
-  navItemTextActive: { color: COLORS.gold, fontWeight: '700' },
+  navItemActive: {
+    backgroundColor: SIDEBAR_ACCENT_TINT,
+    borderLeftColor: SIDEBAR_ACCENT,
+  },
+  navItemText: { color: SIDEBAR_TEXT, fontSize: 13, fontWeight: '500' },
+  navItemTextActive: { color: SIDEBAR_ACCENT, fontWeight: '700' },
+  sidebarFooter: {
+    color: SIDEBAR_TEXT_MUTED,
+    fontSize: 10,
+    textAlign: 'center',
+    paddingVertical: 20,
+    borderTopWidth: 1,
+    borderTopColor: SIDEBAR_BORDER,
+  },
 
   // Drawer
   modalRoot: { flex: 1, flexDirection: 'row' },
-  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)' },
-  drawer: { position: 'absolute', left: 0, top: 0, bottom: 0, backgroundColor: '#000000', paddingTop: 50 },
+  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.55)' },
+  drawer: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: SIDEBAR_BG,
+    paddingTop: 50,
+    borderRightWidth: 1,
+    borderRightColor: SIDEBAR_BORDER,
+  },
   drawerHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingBottom: 12,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: SIDEBAR_BORDER,
+    marginBottom: 8,
   },
-  drawerTitle: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
   drawerClose: {
-    width: 30,
-    height: 30,
+    width: 34,
+    height: 34,
     borderRadius: 8,
-    backgroundColor: '#2A2A2A',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  drawerBadge: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
+    backgroundColor: SIDEBAR_ACCENT,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  drawerBrand: { color: '#FFFFFF', fontWeight: '800', fontSize: 13, letterSpacing: 0.5 },
+  drawerTagline: { color: SIDEBAR_ACCENT, fontSize: 9, letterSpacing: 1, marginTop: 2 },
 
   // Title row
   titleRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 12, marginBottom: 18, flexWrap: 'wrap' },
