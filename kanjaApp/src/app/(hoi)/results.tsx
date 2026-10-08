@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import {
   View,
-  Text,
   TouchableOpacity,
   ScrollView,
   StyleSheet,
@@ -12,11 +11,30 @@ import {
   Dimensions,
   Alert,
   Platform,
+  Text,
 } from "react-native";
+import { useRouter } from "expo-router";
 import { Picker } from "@react-native-picker/picker";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import {
+  Menu,
+  X,
+  GraduationCap,
+  Home,
+  Users,
+  TrendingUp,
+  PieChart as PieChartIcon,
+  FileUp,
+  Target,
+  BookOpen,
+  UserPlus,
+  ClipboardCheck,
+  Bell,
+  Coins,
+} from "lucide-react-native";
 import { BarChart, PieChart, StackedBarChart, LineChart } from "react-native-chart-kit";
 import ThemedView from "@/components/themed-view";
+import ThemedText from "@/components/themed-text";
 import { apiRequest } from "@/services/api/client";
 // NOTE: resultsExport.ts is PDF-only now. There is no `exportMarklistExcel`
 // export any more — importing it gave `undefined`, and calling it threw
@@ -29,6 +47,19 @@ const CARD_BG = "#FFFFFF";
 const PAGE_BG = "#F2EFEA";
 const LABEL_GRAY = "#8A8F98";
 const BLUE = "#1A4A7A";
+
+// ---------- Teachers-panel header / sidebar palette ----------
+const HDR_GOLD = "#C9971E";
+const TEXT_DARK = "#14151A";
+const TEXT_MUTED = "#6B6F76";
+const HDR_BORDER = "#E5E3DE";
+
+const SIDEBAR_BG = "#183766";
+const SIDEBAR_ACCENT = "#3B82F6";
+const SIDEBAR_ACCENT_TINT = "rgba(59, 130, 246, 0.14)";
+const SIDEBAR_BORDER = "rgba(255,255,255,0.08)";
+const SIDEBAR_TEXT = "#DCE4F0";
+const SIDEBAR_TEXT_MUTED = "#7C8CA6";
 
 const TIER_COLOR: Record<string, string> = { ee: "#16A34A", me: BLUE, ae: "#D97706", be: "#991B1B" };
 const TIER_LABEL: Record<string, string> = {
@@ -121,23 +152,31 @@ function isStaffResponse(data: ResultsResponse): data is StaffDashboard {
   return "grade" in data;
 }
 
-type SidebarItem = { label: string; icon: keyof typeof Ionicons.glyphMap };
+/* ── Sidebar items (identical to the Teachers panel) ── */
+type SidebarItem = { label: string; icon: React.ComponentType<any>; route?: string };
+
 const MAIN_ITEMS: SidebarItem[] = [
-  { label: "Home", icon: "home-outline" },
-  { label: "Students", icon: "school-outline" },
-  { label: "Progress Records", icon: "trending-up-outline" },
+  { label: "Home", icon: Home, route: "/teachers" },
+  { label: "Students", icon: Users, route: "/students" },
+  { label: "Progress Records", icon: TrendingUp, route: "/progress" },
 ];
+
 const ACADEMIC_ITEMS: SidebarItem[] = [
-  { label: "Results", icon: "pie-chart-outline" },
-  { label: "Upload Results", icon: "cloud-upload-outline" },
-  { label: "Track Performance", icon: "locate-outline" },
-  { label: "Learning Materials", icon: "book-outline" },
+  { label: "Results", icon: PieChartIcon, route: "/results" },
+  { label: "Upload Results", icon: FileUp, route: "/uploadResults" },
+  { label: "Track Performance", icon: Target, route: "/track" },
+  { label: "Learning Materials", icon: BookOpen, route: "/learningMaterials" },
 ];
+
 const ADMIN_ITEMS: SidebarItem[] = [
-  { label: "Register Learners", icon: "person-add-outline" },
-  { label: "Register Teachers", icon: "person-add-outline" },
+  { label: "Register Learners", icon: UserPlus, route: "/registerLearner" },
+  { label: "Attendance", icon: ClipboardCheck, route: "/attendance" },
+  { label: "Notices", icon: Bell, route: "/notices" },
 ];
-const FINANCE_ITEMS: SidebarItem[] = [{ label: "Finances", icon: "cash-outline" }];
+
+const FINANCE_ITEMS: SidebarItem[] = [
+  { label: "Finances", icon: Coins, route: "/trackFees" },
+];
 
 const screenWidth = Dimensions.get("window").width;
 const CHART_WIDTH = screenWidth - 64;
@@ -173,6 +212,7 @@ function savedHint() {
 }
 
 export default function Results() {
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [grade, setGrade] = useState("");
   const [term, setTerm] = useState("");
@@ -247,20 +287,33 @@ export default function Results() {
     }
   };
 
-  /* ── Sidebar section renderer ──────────────────────────── */
+  /* ── Sidebar navigation (same logic as the Teachers panel) ── */
+  const navigateTo = (route?: string) => {
+    setSidebarOpen(false);
+    // Already on the Results screen: just close the drawer.
+    if (route && route !== "/results") router.push(route as any);
+  };
+
   const renderSidebarSection = (title: string, items: SidebarItem[]) => (
-    <View style={styles.sidebarSection}>
-      <Text style={styles.sidebarSectionTitle}>{title}</Text>
+    <View style={sidebarStyles.section}>
+      <ThemedText style={sidebarStyles.sectionTitle}>{title}</ThemedText>
       {items.map((item) => {
-        const isActive = item.label === "Results";
+        const Icon = item.icon;
+        const isActive = item.route === "/results";
         return (
           <TouchableOpacity
             key={item.label}
-            style={[styles.sidebarItem, isActive && styles.sidebarItemActive]}
-            onPress={() => setSidebarOpen(false)}
+            style={[sidebarStyles.item, isActive && sidebarStyles.itemActive]}
+            onPress={() => navigateTo(item.route)}
           >
-            <Ionicons name={item.icon} size={18} color={isActive ? GOLD : "#C9CCD1"} style={{ marginRight: 12 }} />
-            <Text style={[styles.sidebarItemText, isActive && styles.sidebarItemTextActive]}>{item.label}</Text>
+            <Icon
+              size={18}
+              color={isActive ? SIDEBAR_ACCENT : SIDEBAR_TEXT_MUTED}
+              style={{ marginRight: 12 }}
+            />
+            <ThemedText style={[sidebarStyles.itemText, isActive && sidebarStyles.itemTextActive]}>
+              {item.label}
+            </ThemedText>
           </TouchableOpacity>
         );
       })}
@@ -604,17 +657,21 @@ export default function Results() {
 
   return (
     <ThemedView style={{ flex: 1, backgroundColor: PAGE_BG }}>
-      {/* Header */}
+      {/* Header (Teachers-panel style) */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.iconButton} onPress={() => setSidebarOpen(true)}>
-          <Ionicons name="menu" size={20} color={DARK} />
-        </TouchableOpacity>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.headerTitle}>Stephen Kanja Primary &amp; Junior School</Text>
-          <Text style={styles.headerSubtitle}>ACADEMIC PERFORMANCE TRANSCRIPT</Text>
-        </View>
-        <View style={styles.iconButtonGold}>
-          <Ionicons name="school" size={18} color={DARK} />
+        <View style={styles.headerRow}>
+          <TouchableOpacity style={styles.menuButton} onPress={() => setSidebarOpen(true)}>
+            <Menu size={18} color={TEXT_DARK} />
+          </TouchableOpacity>
+          <View style={styles.logoBadge}>
+            <GraduationCap size={20} color="#111111" />
+          </View>
+          <View>
+            <ThemedText style={styles.header1}>
+              Stephen Kanja <ThemedText style={styles.headerAccent}>School</ThemedText>
+            </ThemedText>
+            <ThemedText style={styles.header2}>Aim Higher</ThemedText>
+          </View>
         </View>
       </View>
 
@@ -723,33 +780,37 @@ export default function Results() {
         ) : null}
       </ScrollView>
 
-      {/* Sidebar Drawer */}
+      {/* Sidebar Drawer — Teachers-panel (bluish HOI) style */}
       <Modal visible={sidebarOpen} animationType="fade" transparent onRequestClose={() => setSidebarOpen(false)}>
-        <Pressable style={styles.sidebarOverlay} onPress={() => setSidebarOpen(false)}>
-          <Pressable style={styles.sidebar} onPress={(e) => e.stopPropagation()}>
-            <View style={styles.sidebarHeader}>
-              <TouchableOpacity style={styles.iconButton} onPress={() => setSidebarOpen(false)}>
-                <Ionicons name="close" size={18} color={DARK} />
+        <Pressable style={sidebarStyles.overlay} onPress={() => setSidebarOpen(false)}>
+          <Pressable style={sidebarStyles.sidebar} onPress={(e) => e.stopPropagation()}>
+            <View style={sidebarStyles.header}>
+              <TouchableOpacity style={sidebarStyles.iconButton} onPress={() => setSidebarOpen(false)}>
+                <X size={18} color={SIDEBAR_TEXT} />
               </TouchableOpacity>
-              <View style={styles.iconButtonGold}>
-                <Ionicons name="school" size={16} color={DARK} />
+              <View style={sidebarStyles.iconButtonAccent}>
+                <GraduationCap size={16} color="#FFFFFF" />
               </View>
               <View style={{ marginLeft: 10 }}>
-                <Text style={styles.sidebarBrand}>
-                  STEPHEN KANJA <Text style={{ color: GOLD }}>SCHOOL</Text>
-                </Text>
-                <Text style={styles.sidebarTagline}>AIM HIGHER</Text>
+                <ThemedText style={sidebarStyles.brand}>
+                  STEPHEN KANJA <ThemedText style={{ color: SIDEBAR_ACCENT }}>SCHOOL</ThemedText>
+                </ThemedText>
+                <ThemedText style={sidebarStyles.tagline}>AIM HIGHER</ThemedText>
               </View>
             </View>
-            <ScrollView style={{ flex: 1 }}>
+
+            <ScrollView
+              style={{ flex: 1 }}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: 12 }}
+            >
               {renderSidebarSection("MAIN", MAIN_ITEMS)}
               {renderSidebarSection("ACADEMICS", ACADEMIC_ITEMS)}
               {renderSidebarSection("ADMINISTRATION", ADMIN_ITEMS)}
               {renderSidebarSection("FINANCE", FINANCE_ITEMS)}
             </ScrollView>
-            <Text style={styles.sidebarFooter}>
-              © 2026 Kelvin Mutinda{"\n"}infinityfreeapp.com
-            </Text>
+
+            <ThemedText style={sidebarStyles.footer}>© 2026 Kelvin Mutinda{"\n"}infinityfreeapp.com</ThemedText>
           </Pressable>
         </Pressable>
       </Modal>
@@ -758,11 +819,15 @@ export default function Results() {
 }
 
 const styles = StyleSheet.create({
-  header: { backgroundColor: DARK, paddingTop: 50, paddingBottom: 20, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", borderBottomWidth: 2, borderBottomColor: GOLD },
-  iconButton: { width: 34, height: 34, borderRadius: 8, backgroundColor: "rgba(255,255,255,0.08)", alignItems: "center", justifyContent: "center", marginRight: 12 },
-  iconButtonGold: { width: 34, height: 34, borderRadius: 8, backgroundColor: GOLD, alignItems: "center", justifyContent: "center" },
-  headerTitle: { color: "#fff", fontSize: 16, fontWeight: "700" },
-  headerSubtitle: { color: "#9AA0A8", fontSize: 10, letterSpacing: 1.5, marginTop: 2 },
+  /* Header (Teachers-panel style) */
+  header: { backgroundColor: "transparent", paddingTop: 50, paddingBottom: 8, paddingHorizontal: 20 },
+  headerRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  menuButton: { width: 34, height: 34, borderRadius: 8, backgroundColor: CARD_BG, borderWidth: 1, borderColor: HDR_BORDER, alignItems: "center", justifyContent: "center", marginRight: 4 },
+  logoBadge: { width: 36, height: 36, borderRadius: 8, backgroundColor: HDR_GOLD, alignItems: "center", justifyContent: "center", marginRight: 8 },
+  header1: { color: TEXT_DARK, fontSize: 17, fontWeight: "700" },
+  headerAccent: { color: HDR_GOLD },
+  header2: { color: TEXT_MUTED, fontSize: 11, letterSpacing: 1, marginTop: 2 },
+
   content: { padding: 16, gap: 16 },
   card: { backgroundColor: CARD_BG, borderRadius: 16, padding: 20, marginBottom: 16, shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
   cardHeading: { fontSize: 12, fontWeight: "700", letterSpacing: 1, textTransform: "uppercase", color: LABEL_GRAY, marginBottom: 16 },
@@ -821,17 +886,32 @@ const styles = StyleSheet.create({
   scorePillText: { fontSize: 11, fontWeight: "600" },
   meanRow: { flexDirection: "row", backgroundColor: DARK, paddingVertical: 10, borderRadius: 8, marginTop: 4 },
   meanCell: { color: "#fff", fontSize: 12, fontWeight: "700", paddingHorizontal: 8 },
+});
 
-  sidebarOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", flexDirection: "row" },
-  sidebar: { width: "78%", maxWidth: 320, height: "100%", backgroundColor: DARK, paddingTop: 50, paddingHorizontal: 16, borderRightWidth: 2, borderRightColor: GOLD },
-  sidebarHeader: { flexDirection: "row", alignItems: "center", paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.08)", marginBottom: 8 },
-  sidebarBrand: { color: "#fff", fontWeight: "800", fontSize: 13, letterSpacing: 0.5 },
-  sidebarTagline: { color: "#9AA0A8", fontSize: 9, letterSpacing: 1, marginTop: 2 },
-  sidebarSection: { marginTop: 18 },
-  sidebarSectionTitle: { color: "#6B6F76", fontSize: 10, letterSpacing: 1.2, fontWeight: "700", marginBottom: 8 },
-  sidebarItem: { flexDirection: "row", alignItems: "center", paddingVertical: 10, paddingHorizontal: 10, borderRadius: 8 },
-  sidebarItemActive: { backgroundColor: "rgba(212,160,23,0.12)", borderWidth: 1, borderColor: GOLD },
-  sidebarItemText: { color: "#C9CCD1", fontSize: 13, fontWeight: "500" },
-  sidebarItemTextActive: { color: GOLD, fontWeight: "700" },
-  sidebarFooter: { color: "#585C63", fontSize: 10, textAlign: "center", paddingVertical: 20 },
+const sidebarStyles = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", flexDirection: "row" },
+  sidebar: {
+    width: "78%",
+    maxWidth: 320,
+    height: "100%",
+    backgroundColor: SIDEBAR_BG,
+    paddingTop: 50,
+    paddingHorizontal: 16,
+    borderRightWidth: 2,
+    borderRightColor: SIDEBAR_ACCENT,
+    // @ts-ignore - web-only style, ignored on native
+    scrollbarWidth: "none",
+  },
+  header: { flexDirection: "row", alignItems: "center", paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: SIDEBAR_BORDER, marginBottom: 8 },
+  iconButton: { width: 34, height: 34, borderRadius: 8, backgroundColor: "rgba(255,255,255,0.08)", alignItems: "center", justifyContent: "center", marginRight: 12 },
+  iconButtonAccent: { width: 34, height: 34, borderRadius: 8, backgroundColor: SIDEBAR_ACCENT, alignItems: "center", justifyContent: "center" },
+  brand: { color: "#fff", fontWeight: "800", fontSize: 13, letterSpacing: 0.5 },
+  tagline: { color: SIDEBAR_TEXT_MUTED, fontSize: 9, letterSpacing: 1, marginTop: 2 },
+  section: { marginTop: 18 },
+  sectionTitle: { color: SIDEBAR_TEXT_MUTED, fontSize: 10, letterSpacing: 1.2, fontWeight: "700", marginBottom: 8 },
+  item: { flexDirection: "row", alignItems: "center", paddingVertical: 10, paddingHorizontal: 10, borderRadius: 8 },
+  itemActive: { backgroundColor: SIDEBAR_ACCENT_TINT },
+  itemText: { color: SIDEBAR_TEXT, fontSize: 13, fontWeight: "500" },
+  itemTextActive: { color: "#fff", fontWeight: "700" },
+  footer: { color: SIDEBAR_TEXT_MUTED, fontSize: 10, textAlign: "center", paddingVertical: 20 },
 });

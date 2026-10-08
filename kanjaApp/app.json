@@ -25,9 +25,8 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/images/icon1.png",
+        "monochromeImage": "./assets/images/icon1.png"
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.kelvinmutinda.kanjaapp",
@@ -35,7 +34,7 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/icon1.png"
     },
     "plugins": [
       "expo-router",
@@ -53,7 +52,7 @@
       "typedRoutes": true,
       "reactCompiler": true
     },
-       "extra": {
+    "extra": {
       "router": {},
       "eas": {
         "projectId": "4466d452-b06a-4233-a17d-60b59582848a"
