@@ -7,13 +7,32 @@ import {
   ActivityIndicator,
   RefreshControl,
   Platform,
+  Modal,
+  Pressable,
 } from "react-native";
-import { Menu, GraduationCap, Search, FileText, X } from "lucide-react-native";
+import { useRouter } from "expo-router";
+import {
+  Menu,
+  X,
+  GraduationCap,
+  Search,
+  FileText,
+  Home,
+  Users,
+  TrendingUp,
+  PieChart,
+  FileUp,
+  Target,
+  BookOpen,
+  UserPlus,
+  ClipboardCheck,
+  Bell,
+  Coins,
+} from "lucide-react-native";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import ThemedView from "@/components/themed-view";
 import ThemedText from "@/components/themed-text";
-import AppSidebar from "@/components/app-sidebar";
 import SelectField from "@/components/select-field";
 import { getItem } from "@/services/storage/secureStorage";
 
@@ -28,6 +47,40 @@ const SCHOOL_NAME = "Stephen Kanja Primary & Junior School";
 const PAGE_SIZE = 50;      // rows shown on screen per page
 const EXPORT_CHUNK = 200;  // page size used only if the server can't do a one-shot export
 const START_YEAR = 2026;   // Year filter starts here
+
+// ---------------------------------------------------------------------------
+// SIDEBAR (same items, icons and routes as the Teachers panel)
+// ---------------------------------------------------------------------------
+const CURRENT_ROUTE = "/progress";
+
+const SIDEBAR_BG = "#183766";
+const SIDEBAR_ACCENT = "#3B82F6";
+const SIDEBAR_ACCENT_TINT = "rgba(59, 130, 246, 0.14)";
+const SIDEBAR_BORDER = "rgba(255,255,255,0.08)";
+const SIDEBAR_TEXT = "#DCE4F0";
+const SIDEBAR_TEXT_MUTED = "#7C8CA6";
+
+type SidebarItem = { label: string; icon: React.ComponentType<any>; route?: string };
+
+const MAIN_ITEMS: SidebarItem[] = [
+  { label: "Home", icon: Home, route: "/teachers" },
+  { label: "Students", icon: Users, route: "/students" },
+  { label: "Progress Records", icon: TrendingUp, route: "/progress" },
+];
+const ACADEMIC_ITEMS: SidebarItem[] = [
+  { label: "Results", icon: PieChart, route: "/results" },
+  { label: "Upload Results", icon: FileUp, route: "/uploadResults" },
+  { label: "Track Performance", icon: Target, route: "/track" },
+  { label: "Learning Materials", icon: BookOpen, route: "/learningMaterials" },
+];
+const ADMIN_ITEMS: SidebarItem[] = [
+  { label: "Register Learners", icon: UserPlus, route: "/registerLearner" },
+  { label: "Attendance", icon: ClipboardCheck, route: "/attendance" },
+  { label: "Notices", icon: Bell, route: "/notices" },
+];
+const FINANCE_ITEMS: SidebarItem[] = [
+  { label: "Finances", icon: Coins, route: "/trackFees" },
+];
 
 // ---------------------------------------------------------------------------
 // FILTER OPTIONS. value "" means "All".
@@ -242,6 +295,7 @@ const MONO = Platform.select({ ios: "Courier", android: "monospace", default: "C
 // SCREEN
 // ---------------------------------------------------------------------------
 export default function ProgressRecord() {
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [draft, setDraft] = useState<Filters>(EMPTY_FILTERS);
@@ -278,6 +332,39 @@ export default function ProgressRecord() {
     });
     return opts;
   }, [meta.learners, draft.grade]);
+
+  // ── Sidebar navigation (same behaviour as the Teachers panel) ──
+  const navigateTo = (route?: string) => {
+    setSidebarOpen(false);
+    // Already on Progress Records: just close the drawer.
+    if (route && route !== CURRENT_ROUTE) router.push(route as any);
+  };
+
+  const renderSidebarSection = (title: string, items: SidebarItem[]) => (
+    <View style={sidebarStyles.section}>
+      <ThemedText style={sidebarStyles.sectionTitle}>{title}</ThemedText>
+      {items.map((item) => {
+        const Icon = item.icon;
+        const isActive = item.route === CURRENT_ROUTE;
+        return (
+          <TouchableOpacity
+            key={item.label}
+            style={[sidebarStyles.item, isActive && sidebarStyles.itemActive]}
+            onPress={() => navigateTo(item.route)}
+          >
+            <Icon
+              size={18}
+              color={isActive ? SIDEBAR_ACCENT : SIDEBAR_TEXT_MUTED}
+              style={{ marginRight: 12 }}
+            />
+            <ThemedText style={[sidebarStyles.itemText, isActive && sidebarStyles.itemTextActive]}>
+              {item.label}
+            </ThemedText>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
 
   // ── Dropdown data: fetched once, cached ──
   const loadMeta = useCallback(async () => {
@@ -432,15 +519,15 @@ export default function ProgressRecord() {
 <style>
   @page { margin: 18mm 12mm; }
   body { font-family: Helvetica, Arial, sans-serif; color: #1a1a18; font-size: 10px; }
-  .band { background: #111; border-bottom: 3px solid #f0c040; padding: 14px; text-align: center; }
+  .band { background: #183766; border-bottom: 3px solid #f0c040; padding: 14px; text-align: center; }
   .band h1 { color: #f0c040; font-size: 17px; margin: 0 0 4px; letter-spacing: 1px; }
   .band p { color: #fff; margin: 0; font-size: 11px; }
-  .band small { color: #ccc; font-size: 8px; letter-spacing: 1px; }
+  .band small { color: #dce4f0; font-size: 8px; letter-spacing: 1px; }
   .meta { margin: 12px 0; font-size: 10px; color: #444; line-height: 1.6; }
   table { width: 100%; border-collapse: collapse; }
   thead { display: table-header-group; }
   tr { page-break-inside: avoid; }
-  th { background: #111; color: #f0c040; padding: 6px 5px; text-align: left; font-size: 9px; }
+  th { background: #183766; color: #f0c040; padding: 6px 5px; text-align: left; font-size: 9px; }
   td { padding: 5px; border-bottom: 1px solid #e5e5e5; }
   tbody tr:nth-child(even) { background: #f8f8f6; }
   .c { text-align: center; }
@@ -510,19 +597,21 @@ export default function ProgressRecord() {
 
   return (
     <ThemedView style={styles.page}>
-      {/* Header — black bar with gold rule, like the web */}
+      {/* Header (Teachers-panel style) */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.menuButton} onPress={() => setSidebarOpen(true)}>
-          <Menu size={18} color="#FFFFFF" />
-        </TouchableOpacity>
-        <View style={styles.logoBadge}>
-          <GraduationCap size={18} color={COLORS.black} />
-        </View>
-        <View style={styles.headerTextWrap}>
-          <ThemedText style={styles.schoolName} numberOfLines={1}>
-            STEPHEN KANJA <ThemedText style={styles.schoolNameGold}>SCHOOL</ThemedText>
-          </ThemedText>
-          <ThemedText style={styles.schoolMotto}>AIM HIGHER</ThemedText>
+        <View style={styles.headerRow}>
+          <TouchableOpacity style={styles.menuButton} onPress={() => setSidebarOpen(true)}>
+            <Menu size={18} color={COLORS.ink} />
+          </TouchableOpacity>
+          <View style={styles.logoBadge}>
+            <GraduationCap size={20} color="#111111" />
+          </View>
+          <View>
+            <ThemedText style={styles.header1}>
+              Stephen Kanja <ThemedText style={styles.headerAccent}>School</ThemedText>
+            </ThemedText>
+            <ThemedText style={styles.header2}>Aim Higher</ThemedText>
+          </View>
         </View>
       </View>
 
@@ -633,7 +722,7 @@ export default function ProgressRecord() {
               onPress={handleFilterPress}
               disabled={busy}
             >
-              {busy ? <ActivityIndicator size="small" color={COLORS.black} /> : <Search size={16} color="#111111" />}
+              {busy ? <ActivityIndicator size="small" color={COLORS.ink} /> : <Search size={16} color="#111111" />}
               <ThemedText style={styles.filterButtonText}>{busy ? "Loading…" : "Filter"}</ThemedText>
             </TouchableOpacity>
             {hasActiveFilters ? (
@@ -679,7 +768,7 @@ export default function ProgressRecord() {
 
           {loading ? (
             <View style={styles.stateWrap}>
-              <ActivityIndicator size="small" color={COLORS.gold} />
+              <ActivityIndicator size="small" color={COLORS.goldDim} />
               <ThemedText style={styles.stateText}>Loading progress records…</ThemedText>
             </View>
           ) : records.length === 0 ? (
@@ -755,7 +844,7 @@ export default function ProgressRecord() {
               {/* Load more */}
               {records.length < total ? (
                 <TouchableOpacity style={styles.loadMore} onPress={handleLoadMore} disabled={loadingMore}>
-                  {loadingMore ? <ActivityIndicator size="small" color={COLORS.black} /> : null}
+                  {loadingMore ? <ActivityIndicator size="small" color={COLORS.ink} /> : null}
                   <ThemedText style={styles.loadMoreText}>
                     {loadingMore ? "Loading…" : `Load more (${records.length} of ${total})`}
                   </ThemedText>
@@ -771,7 +860,40 @@ export default function ProgressRecord() {
         </View>
       </ScrollView>
 
-      <AppSidebar visible={sidebarOpen} onClose={() => setSidebarOpen(false)} activeRoute="/progress-records" />
+      {/* Sidebar Drawer — Teachers-panel navy style */}
+      <Modal visible={sidebarOpen} animationType="fade" transparent onRequestClose={() => setSidebarOpen(false)}>
+        <Pressable style={sidebarStyles.overlay} onPress={() => setSidebarOpen(false)}>
+          <Pressable style={sidebarStyles.sidebar} onPress={(e) => e.stopPropagation()}>
+            <View style={sidebarStyles.header}>
+              <TouchableOpacity style={sidebarStyles.iconButton} onPress={() => setSidebarOpen(false)}>
+                <X size={18} color={SIDEBAR_TEXT} />
+              </TouchableOpacity>
+              <View style={sidebarStyles.iconButtonAccent}>
+                <GraduationCap size={16} color="#FFFFFF" />
+              </View>
+              <View style={{ marginLeft: 10 }}>
+                <ThemedText style={sidebarStyles.brand}>
+                  STEPHEN KANJA <ThemedText style={{ color: SIDEBAR_ACCENT }}>SCHOOL</ThemedText>
+                </ThemedText>
+                <ThemedText style={sidebarStyles.tagline}>AIM HIGHER</ThemedText>
+              </View>
+            </View>
+
+            <ScrollView
+              style={{ flex: 1 }}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: 12 }}
+            >
+              {renderSidebarSection("MAIN", MAIN_ITEMS)}
+              {renderSidebarSection("ACADEMICS", ACADEMIC_ITEMS)}
+              {renderSidebarSection("ADMINISTRATION", ADMIN_ITEMS)}
+              {renderSidebarSection("FINANCE", FINANCE_ITEMS)}
+            </ScrollView>
+
+            <ThemedText style={sidebarStyles.footer}>© 2026 Kelvin Mutinda{"\n"}infinityfreeapp.com</ThemedText>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </ThemedView>
   );
 }
@@ -803,10 +925,10 @@ function StatCard({
 
 const COLORS = {
   gold: "#f0c040",
-  goldDim: "#c9a030",
-  black: "#111111",
-  mid: "#2a2a2a",
-  bg: "#f4f4f2",
+  goldDim: "#C9971E",
+  ink: "#14151A",
+  navy: "#183766",
+  bg: "#F2EFEA",
   border: "rgba(0,0,0,0.08)",
 };
 
@@ -814,30 +936,20 @@ const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: COLORS.bg },
   dimmed: { opacity: 0.55 },
 
-  // Header
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    backgroundColor: COLORS.black,
-    borderBottomWidth: 3,
-    borderBottomColor: COLORS.gold,
-    paddingTop: 48,
-    paddingBottom: 12,
-    paddingHorizontal: 16,
-  },
+  // Header (Teachers-panel style)
+  header: { backgroundColor: "transparent", paddingTop: 50, paddingBottom: 8, paddingHorizontal: 20 },
+  headerRow: { flexDirection: "row", alignItems: "center", gap: 10 },
   menuButton: {
-    width: 34, height: 34, borderRadius: 7, backgroundColor: COLORS.mid,
-    alignItems: "center", justifyContent: "center",
+    width: 34, height: 34, borderRadius: 8, backgroundColor: "#FFFFFF",
+    borderWidth: 1, borderColor: "#E5E3DE", alignItems: "center", justifyContent: "center", marginRight: 4,
   },
   logoBadge: {
-    width: 36, height: 36, borderRadius: 8, backgroundColor: COLORS.gold,
-    alignItems: "center", justifyContent: "center",
+    width: 36, height: 36, borderRadius: 8, backgroundColor: COLORS.goldDim,
+    alignItems: "center", justifyContent: "center", marginRight: 8,
   },
-  headerTextWrap: { flex: 1, minWidth: 0 },
-  schoolName: { color: "#FFFFFF", fontSize: 17, fontWeight: "800", letterSpacing: 2 },
-  schoolNameGold: { color: COLORS.gold, fontSize: 17, fontWeight: "800", letterSpacing: 2 },
-  schoolMotto: { color: "#888", fontSize: 9, fontWeight: "600", letterSpacing: 1.5, marginTop: 2 },
+  header1: { color: COLORS.ink, fontSize: 17, fontWeight: "700" },
+  headerAccent: { color: COLORS.goldDim },
+  header2: { color: "#6B6F76", fontSize: 11, letterSpacing: 1, marginTop: 2 },
 
   // Body
   body: { flex: 1 },
@@ -855,11 +967,11 @@ const styles = StyleSheet.create({
   errorRetry: { color: "#b71c1c", fontSize: 12, fontWeight: "700" },
 
   // Banner
-  banner: { backgroundColor: COLORS.black, borderRadius: 12, padding: 14, gap: 10 },
+  banner: { backgroundColor: COLORS.navy, borderRadius: 12, padding: 14, gap: 10 },
   bannerTitleRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   bannerSchool: { color: COLORS.gold, fontSize: 12, fontWeight: "800", letterSpacing: 1, flexShrink: 1 },
   bannerChips: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
-  bannerChip: { backgroundColor: "rgba(255,255,255,0.1)", borderRadius: 100, paddingHorizontal: 10, paddingVertical: 3 },
+  bannerChip: { backgroundColor: "rgba(255,255,255,0.12)", borderRadius: 100, paddingHorizontal: 10, paddingVertical: 3 },
   bannerChipText: { color: "#eee", fontSize: 11, fontWeight: "700" },
 
   // Stat cards
@@ -869,7 +981,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: COLORS.border, paddingVertical: 16, paddingHorizontal: 16, gap: 4,
   },
   statCardWide: { width: "100%" },
-  statValue: { fontSize: 30, fontWeight: "800", color: COLORS.black, lineHeight: 34 },
+  statValue: { fontSize: 30, fontWeight: "800", color: COLORS.ink, lineHeight: 34 },
   statLabel: { fontSize: 11, fontWeight: "700", color: "#888780", letterSpacing: 0.8 },
 
   // Filters
@@ -882,7 +994,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.gold, height: 46, borderRadius: 8,
   },
   buttonBusy: { opacity: 0.75 },
-  filterButtonText: { color: COLORS.black, fontWeight: "700", fontSize: 14 },
+  filterButtonText: { color: COLORS.ink, fontWeight: "700", fontSize: 14 },
   clearButton: {
     flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6,
     height: 46, paddingHorizontal: 16, borderRadius: 8, borderWidth: 1, borderColor: COLORS.border,
@@ -893,10 +1005,10 @@ const styles = StyleSheet.create({
   entriesRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 },
   entriesLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
   entriesLabel: { fontSize: 14, fontWeight: "600", color: "#1a1a18" },
-  countPill: { backgroundColor: COLORS.black, borderRadius: 100, paddingHorizontal: 10, paddingVertical: 3 },
+  countPill: { backgroundColor: COLORS.navy, borderRadius: 100, paddingHorizontal: 10, paddingVertical: 3 },
   countPillText: { color: COLORS.gold, fontSize: 11, fontWeight: "700" },
   downloadButton: {
-    flexDirection: "row", alignItems: "center", gap: 7, backgroundColor: COLORS.black,
+    flexDirection: "row", alignItems: "center", gap: 7, backgroundColor: COLORS.navy,
     borderWidth: 1, borderColor: COLORS.gold, borderRadius: 8, paddingHorizontal: 14, height: 40,
   },
   downloadButtonDisabled: { opacity: 0.6 },
@@ -905,7 +1017,7 @@ const styles = StyleSheet.create({
   // Table
   tableWrap: { backgroundColor: "#FFFFFF", borderRadius: 12, borderWidth: 1, borderColor: COLORS.border, overflow: "hidden" },
   tableBanner: {
-    backgroundColor: COLORS.black, borderBottomWidth: 2, borderBottomColor: COLORS.gold,
+    backgroundColor: COLORS.navy, borderBottomWidth: 2, borderBottomColor: COLORS.gold,
     paddingVertical: 14, alignItems: "center",
   },
   tableBannerText: { color: COLORS.gold, fontSize: 14, fontWeight: "800", letterSpacing: 2 },
@@ -923,7 +1035,7 @@ const styles = StyleSheet.create({
   cellMono: { fontSize: 12.5, color: "#5f5e5a", paddingHorizontal: 8, fontFamily: MONO },
   learnerCell: { flexDirection: "row", alignItems: "center", gap: 9, paddingHorizontal: 8 },
   avatar: {
-    width: 30, height: 30, borderRadius: 15, backgroundColor: COLORS.black,
+    width: 30, height: 30, borderRadius: 15, backgroundColor: COLORS.navy,
     alignItems: "center", justifyContent: "center",
   },
   avatarText: { color: COLORS.gold, fontSize: 11, fontWeight: "700" },
@@ -938,21 +1050,49 @@ const styles = StyleSheet.create({
     flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
     paddingVertical: 14, borderTopWidth: 1, borderTopColor: COLORS.border, backgroundColor: "#fafafa",
   },
-  loadMoreText: { color: COLORS.black, fontSize: 13, fontWeight: "700" },
+  loadMoreText: { color: COLORS.ink, fontSize: 13, fontWeight: "700" },
   footerRow: {
     flexDirection: "row", justifyContent: "space-between", alignItems: "center",
     backgroundColor: "#fdf6e3", borderTopWidth: 2, borderTopColor: COLORS.gold,
     paddingVertical: 12, paddingHorizontal: 16,
   },
-  footerLabel: { fontSize: 13, fontWeight: "700", color: COLORS.black },
-  footerValue: { fontSize: 14, fontWeight: "800", color: COLORS.black },
+  footerLabel: { fontSize: 13, fontWeight: "700", color: COLORS.ink },
+  footerValue: { fontSize: 14, fontWeight: "800", color: COLORS.ink },
 
   // States
   stateWrap: { paddingVertical: 40, paddingHorizontal: 20, alignItems: "center", gap: 8 },
   emptyIcon: {
-    width: 60, height: 60, borderRadius: 16, backgroundColor: COLORS.black,
+    width: 60, height: 60, borderRadius: 16, backgroundColor: COLORS.navy,
     alignItems: "center", justifyContent: "center", marginBottom: 6,
   },
   emptyTitle: { fontSize: 15, fontWeight: "600", color: "#1a1a18" },
   stateText: { fontSize: 12, color: "#888780", textAlign: "center" },
+});
+
+const sidebarStyles = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", flexDirection: "row" },
+  sidebar: {
+    width: "78%",
+    maxWidth: 320,
+    height: "100%",
+    backgroundColor: SIDEBAR_BG,
+    paddingTop: 50,
+    paddingHorizontal: 16,
+    borderRightWidth: 2,
+    borderRightColor: SIDEBAR_ACCENT,
+    // @ts-ignore - web-only style, ignored on native
+    scrollbarWidth: "none",
+  },
+  header: { flexDirection: "row", alignItems: "center", paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: SIDEBAR_BORDER, marginBottom: 8 },
+  iconButton: { width: 34, height: 34, borderRadius: 8, backgroundColor: "rgba(255,255,255,0.08)", alignItems: "center", justifyContent: "center", marginRight: 12 },
+  iconButtonAccent: { width: 34, height: 34, borderRadius: 8, backgroundColor: SIDEBAR_ACCENT, alignItems: "center", justifyContent: "center" },
+  brand: { color: "#fff", fontWeight: "800", fontSize: 13, letterSpacing: 0.5 },
+  tagline: { color: SIDEBAR_TEXT_MUTED, fontSize: 9, letterSpacing: 1, marginTop: 2 },
+  section: { marginTop: 18 },
+  sectionTitle: { color: SIDEBAR_TEXT_MUTED, fontSize: 10, letterSpacing: 1.2, fontWeight: "700", marginBottom: 8 },
+  item: { flexDirection: "row", alignItems: "center", paddingVertical: 10, paddingHorizontal: 10, borderRadius: 8 },
+  itemActive: { backgroundColor: SIDEBAR_ACCENT_TINT },
+  itemText: { color: SIDEBAR_TEXT, fontSize: 13, fontWeight: "500" },
+  itemTextActive: { color: "#fff", fontWeight: "700" },
+  footer: { color: SIDEBAR_TEXT_MUTED, fontSize: 10, textAlign: "center", paddingVertical: 20 },
 });
